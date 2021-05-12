@@ -48,6 +48,7 @@ def main():
 if __name__ == '__main__':
 
     gf = galoislab.GaloisLab(x=x, p=2, n=3, irr=sp.Poly(x**3+x+1, x))
+    gf.print()
 
     gf.extend(y=y, n=2, ext_irr=sp.Poly(y ** 2 + (x + 1) * y + x ** 2 + x + 1, y, x))
     gf.print_ext()

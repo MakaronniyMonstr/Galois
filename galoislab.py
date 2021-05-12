@@ -1,4 +1,5 @@
 import sympy as sp
+from tabulate import tabulate
 
 
 class GaloisLab:
@@ -13,7 +14,7 @@ class GaloisLab:
         self.irr = irr
         self.x = x
 
-        self.dim = p**n
+        self.dim = p ** n
         # Initial elements
         self.elements = [sp.Poly(0, self.x, modulus=self.p)] + \
                         [sp.Poly(self.x ** i, self.x, modulus=self.p) for i in range(n)]
@@ -60,17 +61,47 @@ class GaloisLab:
                     raise ValueError(
                         'Repeated field element detected; please make sure your irreducible polynomial is primitive.')
 
-    def gen_ext(self):
-        pass
-
     def print(self):
         print(f'{len(self.elements)} elements:')
 
-        for el in self.elements:
-            print(el)
+        self._create_table(self.elements, lambda p1, p2: p1 + p2)
+        self._create_table(self.elements, self._mult)
 
     def print_ext(self):
         print(f'{len(self.ext_elements)} elements:')
 
         for el in self.ext_elements:
-            print(el)
+            print(f'{el.args[0]}')
+
+        self._create_table(self.ext_elements, lambda p1, p2: p1 + p2)
+        self._create_table(self.ext_elements, self._mult_ext)
+
+    def _mult_ext(self, p1, p2):
+        res = p1 * p2
+
+        res = sp.rem(
+            sp.Poly(res, res.gens[::-1]), sp.Poly(self.ext_irr),
+            modulus=self.p, symmetric=False
+        )
+
+        res = sp.rem(
+            sp.Poly(res, res.gens[::-1]), sp.Poly(self.irr),
+            modulus=self.p, symmetric=False
+        )
+
+        return res
+
+    def _mult(self, p1, p2):
+        return sp.rem(p1 * p2, self.irr, modulus=self.p, symmetric=False)
+
+    def _create_table(self, elements, func):
+        table = [[el.args[0] for el in elements]]
+
+        for i in elements:
+            row = [i.args[0]]
+
+            for j in elements:
+                row.append(func(i, j).args[0])
+            table.append(row)
+
+        print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
